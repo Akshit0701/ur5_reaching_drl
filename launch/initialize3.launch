@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <!-- Export env variable so that gazebo finds our models -->
+  <env name="GAZEBO_MODEL_PATH"
+       value="$(find world_creation)/models:$(optenv GAZEBO_MODEL_PATH)" />
+  
+  <!-- Launch file parameters -->
+  <arg name="paused"     default="false"/>
+  <arg name="debug"      default="false"/>
+  <arg name="gui"        default="true"/>
+  <arg name="rate"       default="125" />
+  <arg name="world_name" default="$(find world_creation)/worlds/ur5_setup.world" />
+  
+  <!-- Start up simulated world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="verbose" value="true" />
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="paused"     value="$(arg paused)"/>
+    <arg name="debug"      value="$(arg debug)"/>
+    <arg name="gui"        value="$(arg gui)"/>
+  </include>
+
+  <!-- spawn ur5 -->
+	<!-- send robot urdf to param server -->
+	<param name="robot_description" command="$(find xacro)/xacro '$(find ur_description)/urdf/ur5_ft_gripper.urdf.xacro'"/>
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.1 -J ur5_arm_shoulder_pan_joint 0.0 -J ur5_arm_shoulder_lift_joint -1.57 -J ur5_arm_elbow_joint 1.57 -J ur5_arm_wrist_1_joint -1.57 -J ur5_arm_wrist_2_joint -1.57 -J ur5_arm_wrist_3_joint 1.57" respawn="false" output="screen" />
+
+	<!-- Controller launch -->
+	<!-- Controller configuration -->
+
+	<arg name="controller_config_file" default="$(find ur_gazebo)/config/ur5_gripper_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
+	<arg name="controllers" default="arm_controller gripper_controller" doc="Controllers that are activated by default."/>
+	<arg name="stopped_controllers" default="joint_group_velocity_controller" doc="Controllers that are initally loaded, but not started."/>
+
+  <!-- robot_state_publisher configuration -->
+  <arg name="tf_prefix" default="" doc="tf_prefix used for the robot."/>
+  <arg name="tf_pub_rate" default="125" doc="Rate at which robot_state_publisher should publish transforms."/>
+	
+	<!-- Robot state publisher -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="$(arg tf_pub_rate)" />
+    <param name="tf_prefix" value="$(arg tf_prefix)" />
+  </node>
+  
+	<!-- Start the 'driver' (ie: Gazebo in this case) -->
+  <include file="$(dirname)/inc/ur_control.launch.xml">
+    <arg name="controller_config_file" value="$(arg controller_config_file)"/>
+    <arg name="controllers" value="$(arg controllers)"/>
+    <arg name="stopped_controllers" value="$(arg stopped_controllers)"/>
+  </include>
+
+</launch>

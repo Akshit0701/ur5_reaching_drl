@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Gazebo parameters -->
+	<arg name="gazebo_model_name" default="robot" doc="The name to give to the model in Gazebo (after spawning it)." />
+	<arg name="gazebo_world" default="worlds/empty.world" doc="The '.world' file to load in Gazebo." />
+	<arg name="gui" default="true" doc="If true, Gazebo UI is started. If false, only start Gazebo server." />
+	<arg name="paused" default="false" doc="If true, start Gazebo in paused mode. If false, start simulation as soon as Gazebo has loaded." />
+	<arg name="robot_description_param_name" default="robot_description" doc="Name of the parameter which contains the robot description (ie: URDF) which should be spawned into Gazebo." />
+	<arg name="spawn_z" default="0.1" doc="At which height the model should be spawned. NOTE: lower values will cause the robot to collide with the ground plane." />
+	<arg name="start_gazebo" default="true" doc="If true, Gazebo will be started. If false, Gazebo will be assumed to have been started elsewhere." />
+
+	<!-- startup simulated world -->
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+		<arg name="world_name" value="$(arg gazebo_world)"/>
+		<arg name="paused" value="$(arg paused)"/>
+		<arg name="gui" value="$(arg gui)"/>
+	</include>
+
+	<!--Robot description and related parameter files -->
+	<arg name="robot_description_file" default="$(dirname)/inc/load_ur5.launch.xml" doc="Launch file which populates the 'robot_description' parameter."/>
+	<arg name="joint_limit_params" default="$(find ur_description)/config/ur5/joint_limits.yaml"/>
+	<arg name="kinematics_params" default="$(find ur_description)/config/ur5/default_kinematics.yaml"/>
+	<arg name="physical_params" default="$(find ur_description)/config/ur5/physical_parameters.yaml"/>
+	<arg name="visual_params" default="$(find ur_description)/config/ur5/visual_parameters.yaml"/>
+
+  <!-- Controller configuration -->
+	<!--arg name="controller_config_file" default="$(find ur_gazebo)/config/ur5_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/-->
+	<arg name="controller_config_file" default="$(find ur_gazebo)/config/arm_controller_ur5.yaml" doc="Config file used for defining the ROS-Control controllers."/>
+	<arg name="controllers" default="arm_controller" doc="Controllers that are activated by default."/>
+	<arg name="stopped_controllers" default="joint_group_velocity_controller" doc="Controllers that are initally loaded, but not started."/>
+
+  <!-- robot_state_publisher configuration -->
+	<arg name="tf_prefix" default="" doc="tf_prefix used for the robot."/>
+	<arg name="tf_pub_rate" default="125" doc="Rate at which robot_state_publisher should publish transforms."/>
+
+  <!-- Gazebo parameters -->
+	<!--arg name="paused" default="false" doc="Starts Gazebo in paused mode" /-->
+	<!--arg name="gui" default="true" doc="Starts Gazebo gui" /-->
+
+  <!-- Load urdf on the parameter server -->
+	<include file="$(arg robot_description_file)">
+		<arg name="joint_limit_params" value="$(arg joint_limit_params)"/>
+		<arg name="kinematics_params" value="$(arg kinematics_params)"/>
+		<arg name="physical_params" value="$(arg physical_params)"/>
+		<arg name="visual_params" value="$(arg visual_params)"/>
+	</include>
+
+  <!-- Robot state publisher -->
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+		<param name="publish_frequency" type="double" value="$(arg tf_pub_rate)" />
+		<param name="tf_prefix" value="$(arg tf_prefix)" />
+	</node>
+
+  <!-- Start the 'driver' (ie: Gazebo in this case) -->
+	<include file="$(dirname)/inc/ur_control.launch.xml">
+		<arg name="controller_config_file" value="$(arg controller_config_file)"/>
+		<arg name="controllers" value="$(arg controllers)"/>
+		<!--arg name="gui" value="$(arg gui)"/-->
+		<!--arg name="paused" value="$(arg paused)"/-->
+		<arg name="stopped_controllers" value="$(arg stopped_controllers)"/>
+	</include>
+
+</launch>
