@@ -1,4 +1,4 @@
-# ur_reaching_drl
+# ur5_reaching_drl
 
 ## Tested in:
 Ubuntu 18.04 with Melodic
@@ -23,7 +23,7 @@ Robotics Toolbox for Python: https://github.com/petercorke/robotics-toolbox-pyth
 
 ## Simulation world launch:
 
-`roslaunch ur_reaching_drl ur5_cubes.launch`
+`roslaunch ur5_reaching_drl ur5_cubes.launch`
 
 In the gazebo world set the "real time update rate" under the "Physics" tab. Check the image:
 
@@ -41,24 +41,24 @@ The above command is included in reset() of the robot-task environment "ur5_reac
 
 Navigate to the td3.py training script directory:
 
-`cd ~/{catkin_ws}/src/ur_reaching_drl/src/scripts`
+`cd ~/{catkin_ws}/src/ur5_reaching_drl/src/scripts`
 
-Open "td3.py" script in ur_reacgin_drl/src/scripts and set "train = True" and comment "train = False". This will make the script run in training mode.
+Open "td3.py" script in ur5_reaching_drl/src/scripts and set "train = True" and comment "train = False". This will make the script run in training mode.
 
 Run the script:
 
 `python td3.py`
 
-Once the training is completed, we can now uncomment "train = False" and comment "train = True". This will make the script run in testing mode, where you can see the trained model working in gazebo. The saved Neural network model is stored in ur_reaching_drl/src/scripts/model
+Once the training is completed, we can now uncomment "train = False" and comment "train = True". This will make the script run in testing mode, where you can see the trained model working in gazebo. The saved Neural network model is stored in ur5_reaching_drl/src/scripts/model
 
-We use tensorboard to visualize the training results. The run data is stored in ur_reaching_drl/src/scripts/runs. In a new terminal navigate to "scripts" directory:
+We use tensorboard to visualize the training results. The run data is stored in ur5_reaching_drl/src/scripts/runs. In a new terminal navigate to "scripts" directory:
 
-`cd ~/{catkin_ws}/src/ur_reaching_drl/src/scripts`
+`cd ~/{catkin_ws}/src/ur5_reaching_drl/src/scripts`
 
 `tensorboard --logdir=runs`
 
 In the terminal you will get a link to visualize the runs in tensorboard.
 
 In the td3.py we set manual seeds for reproducibility. Change the seed values which will give different results which can be combined later to see the covariance.
-Once multiple runs with different seed values have been completed, download the data (in .csv format) of each run from tensorboard. Open tensorbaord, go to "Scalars" tab and select all the runs you want to compare. You will multiple graphs, download the ones you are interested in and store it in ur_reaching_drl/src/scripts/data as .csv file. In the "data" directory, make changes in 'combine_plot.py' to include all the saved .csv files and run the script to get a covariance plot.
+Once multiple runs with different seed values have been completed, download the data (in .csv format) of each run from tensorboard. Open tensorbaord, go to "Scalars" tab and select all the runs you want to compare. You will multiple graphs, download the ones you are interested in and store it in ur5_reaching_drl/src/scripts/data as .csv file. In the "data" directory, make changes in 'combine_plot.py' to include all the saved .csv files and run the script to get a covariance plot.
 
